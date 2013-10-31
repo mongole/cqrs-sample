@@ -1,0 +1,8 @@
+.item-editor(ng-controller="ItemCtrl")
+    .display
+        span Id: {{ item.id }} Name: {{ item.name }}
+        button.btn.btn-xs.btn-default(type="submit", value="edit") Edit
+        button.btn.btn-xs.btn-danger(type="submit", value="delete") Delete
+    .edit
+        label Name:
+        input(type="text", ng-model="item")

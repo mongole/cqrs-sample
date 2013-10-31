@@ -87,7 +87,7 @@
     // ---------------------
 
     // view templates
-    var itemTemplate = _.template('<%= text %> <a class="deleteItem" href="">delete</a> <a class="editItem" href="">edit</a>');
+    var itemTemplate = _.template('<%= text %> <a class="deleteItem" href="">delete</a> <a class="editMode" href="">edit</a>');
     var editItemTemplate = _.template('<input id="newText" type="text" value="<%= text %>", autofocus/><button id="changeItem">save</button>');
 
     // views
