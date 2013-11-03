@@ -11,7 +11,7 @@ html(lang="en")
         |<![endif]-->
 
         title cqrs-sample - CQRS Sample with cqrs-domain, cqrs-eventdenormalizer, etc.
-    body( ng-app)
+    body( ng-app="itemModule")
         .container
             h1 cqrs-sample
             p At this point of development you can create, change and delete items.
@@ -20,36 +20,28 @@ html(lang="en")
             #index-view(ng-controller="ItemsCtrl")
                 form.form-inline
                     .form-group
-                        input#newItemName.form-control(type="text", autofocus, placeholder="Enter new item name", ng-model="itemName")
+                        input#newItemName.form-control(type="text", autofocus, placeholder="Enter new item name", ng-model="newItemName")
                     button#addItem.btn.btn-primary(type="submit", ng-click="addItem('newItemName')") Add
-
-                p Our items so far:
+                br
                 ul#items
                     li( ng-repeat="item in items", ng-init="itemIdx = $index")
-                        .item-editor(ng-controller="ItemCtrl")
+                        .item-editor(ng-controller="ItemCtrl", ng-mouseover="mouseOver= true", ng-mouseleave="mouseOver= false")
                             .item(ng-hide="editMode")
                                 span {{ item.name }}
-                                button.btn.btn-xs.btn-default(type="submit", ng-click="edit()")
-                                    span.glyphicon.glyphicon-edit
+                            .edit(ng-show="editMode")
+                                input(type="text", ng-model="item.name", smf-focus="focus()", smf-blur="blur()", smf-keyup="press($event)")
                                 button.btn.btn-xs.btn-danger(type="submit", ng-click="delete()")
                                     span.glyphicon.glyphicon-remove
-                            .edit(ng-show="editMode")
-                                input(type="text", ng-model="editItem.name", autofocus)
-                                button.btn.btn-xs.btn-default(type="submit", ng-click="cancel()")
-                                    span.glyphicon.glyphicon-remove
-                                button.btn.btn-xs.btn-default(type="submit", value="save", ng-click="save()")
-                                    span.glyphicon.glyphicon-check
 
             p You can have multiple browser windows open - all get updated via socket.io.
         
         script(src='/js/lib/jquery-1.10.2.min.js', type='text/javascript')
         script(src='/js/lib/underscore.js', type='text/javascript')
-        //- script(src='/js/lib/backbone.js', type='text/javascript')
-        //- script(src='/js/lib/backboneCQRS-0.4.js', type='text/javascript')
         //- script(src='http://localhost:3000/socket.io/socket.io.js', type='text/javascript')
         script( src="/bs/js/bootstrap.min.js")
-        script( src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js", type="text/javascript")
+        script( src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js", type="text/javascript")
         script( src="/js/lib/uuid.js")
+        script( src="/js/lib/cqrs-service.js")
         script(src='/js/controller.js', type='text/javascript')
 
 

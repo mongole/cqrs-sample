@@ -6,67 +6,176 @@
 Item = function (id, name) {
     this.id = id;
     this.name = name;
+    this.clone = function () {
+        return new Item(this.id, this.name);
+    }
+    this.equals = function (rhs) {
+        return ( this.id == rhs.id &&
+            this.name == rhs.name);
+    }
 }
-
 function indexOfItem(item, items) {
-    if( items.length == 0)
+    if (items.length == 0)
         return -1;
-    for( idx = 0; idx < items.length; idx++) {
-        if(items[idx].id == item.id)
+    for (idx = 0; idx < items.length; idx++) {
+        if (items[idx].id == item.id)
             return idx;
     }
     return -1;
 }
 
-function ItemsCtrl($scope) {
 
-    function createId() {
-        return uuid.v1();
-    }
+var itemModule = angular.module('itemModule', ['smfCqrs'])
+    // https://github.com/angular/angular.js/issues/1277
+    .directive([ 'focus', 'blur', 'keyup', 'keydown', 'keypress' ].reduce(function (container, name) {
+        var directiveName = 'smf' + name[ 0 ].toUpperCase() + name.substr(1);
 
-    $scope.itemName = "";
+        container[ directiveName ] = [ '$parse', function ($parse) {
+            return function (scope, element, attr) {
+                var fn = $parse(attr[ directiveName ]);
+                element.bind(name, function (event) {
+                    scope.$apply(function () {
+                        fn(scope, {
+                            $event: event
+                        });
+                    });
+                });
+            };
+        } ];
 
-    $scope.items = new Array();
-    $scope.items.push(new Item(createId(), "Item 1"));
-    $scope.items.push(new Item(createId(), "Item 2"));
+        return container;
+    }, { }))
+    .controller('ItemsCtrl', function ($scope, smfCqrs) {
 
-    $scope.addItem = function (input) {
-        if ($scope.itemName) {
-            console.log("added item with name: " + $scope.itemName);
-            $scope.items.push(new Item(createId(), $scope.itemName));
-            delete( $scope.itemName);
+        function createId() {
+            return uuid.v1();
         }
-        document.getElementById(input).focus();
-    }
-}
 
-function ItemCtrl($scope) {
+        $scope.newItemName = "";
 
-    $scope.item;
-    $scope.editItem;
+        $scope.items = [];
+        smfCqrs.loadItems(function success(items) {
+                $scope.items = items;
+            },
+            function error(err) {
+                // TODO show error
+            });
 
-    $scope.editMode = false;
-    $scope.edit = function() {
-        $scope.editItem = new Item( $scope.item.id, $scope.item.name);
-        $scope.editMode = true;
-    }
+        $scope.addItem = function (input) {
+            if ($scope.newItemName) {
+                var item = new Item(createId(), $scope.newItemName);
+                smfCqrs.createItem(
+                    item,
+                    function success(item) {
+                        $scope.items.push(item);
+                        delete( $scope.newItemName);
+                        // TODO show success
+                    },
+                    function error(err) {
+                        // TODO show error
+                    });
+            }
+            document.getElementById(input).focus();
+        }
+    })
+    .controller('ItemCtrl', function ($scope, smfCqrs) {
 
-    $scope.cancel = function() {
+        function setEditMode() {
+            $scope.editMode = ($scope.mouseOver || $scope.focused);
+        }
+
+        function backupItem() {
+            console.log("got focus and backup.");
+            $scope.itemBackup = $scope.item.clone();
+        }
+
+        function resetItem() {
+            $scope.item = $scope.itemBackup.clone();
+        }
+
+        function saveChanges() {
+            if ($scope.item.equals($scope.itemBackup)) {
+                smfCqrs.saveChanges(
+                    $scope.item,
+                    function success(item) {
+                        $scope.item = item;
+                        // TODO show success
+                    },
+                    function error(err) {
+                        // TODO show error
+                        // TODO set value to value from server?
+                    });
+            }
+        }
+
+        $scope.item;
+
+        $scope.mouseOver = false;
+        $scope.focused = false;
         $scope.editMode = false;
-        delete $scope.editItem;
-    }
 
-    $scope.save = function() {
+        $scope.focus = function () {
+            $scope.focused = true;
+        }
+        $scope.blur = function () {
+            $scope.focused = false;
+        }
+        $scope.$watch('mouseOver', setEditMode);
+        $scope.$watch('focused', setEditMode);
 
-        var idx = indexOfItem($scope.item, $scope.items);
-        $scope.item = new Item( $scope.editItem.id, $scope.editItem.name);
-        $scope.items[idx] = $scope.item;
-        $scope.editMode = false;
-    }
+        $scope.$watch('focused', function (newVal, oldVal, scope) {
+            function lostFocus() {
+                return (oldVal != newVal && newVal == false);
+            }
 
-    $scope.delete = function() {
-        var idx = indexOfItem($scope.item, $scope.items);
-        if( idx >= 0)
-            $scope.items.splice(idx,1);
-    }
-}
+            function gotFocus() {
+                return (oldVal != newVal && newVal == true);
+            }
+
+            if (lostFocus()) {
+                if (!$scope.preventSave) {
+                    delete $scope.preventSave;
+                    saveChanges();
+                }
+            } else if (gotFocus()) {
+                backupItem();
+            }
+        });
+
+        $scope.press = function (event) {
+            if (event.keyCode == 27) {
+                $scope.focused = false;
+                resetItem();
+            }
+            if (event.keyCode == 13) {
+                $scope.focused = false;
+                saveChanges();
+                backupItem();
+            }
+        }
+
+        $scope.delete = function () {
+            $scope.preventSave = true;
+            smfCqrs.deleteItem(
+                $scope.item.id,
+                function success() {
+                    var idx = indexOfItem($scope.item, $scope.items);
+                    if (idx >= 0) {
+                        $scope.items.splice(idx, 1);
+                    }
+                    // TODO show success
+                },
+                function error(err) {
+                    // TODO show error
+                }
+            )
+        }
+
+        $scope.$on('$destroy', function destroyController() {
+            saveChanges();
+        })
+    });
+
+
+
+
