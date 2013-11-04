@@ -44,3 +44,17 @@ The API is designed well so you can focus on the domain without worring to much 
 
 
 Documentation can be found [here](http://adrai.github.com/cqrs/)
+
+## automated gui tests
+
+There are some automated gui tests, which use protractor.
+
+to use them do following to install selenium and run tests:
+
+    npm install -g protractor
+    node_modules/protractor/bin/install_selenium_standalone
+    ./selenium/start
+
+for more details check [protractors git page](https://github.com/angular/protractor/blob/master/docs/getting-started.md)
+
+
