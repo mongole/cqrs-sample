@@ -2,29 +2,44 @@
 //
 // `node server.js` 
 var express = require('express')
-  , http = require('http')
-  , colors = require('../colors')
-  , socket = require('socket.io')
-  , contextEventDenormalizer = require('cqrs-eventdenormalizer').contextEventDenormalizer
-  , repository = require('viewmodel').read;
+    , http = require('http')
+    , colors = require('../colors')
+    , socket = require('socket.io')
+    , contextEventDenormalizer = require('cqrs-eventdenormalizer').contextEventDenormalizer
+    , repository = require('viewmodel').read;
 
 // create an configure:
 //
 // - express webserver
 // - socket.io socket communication from/to browser
 var app = express()
-  , server = http.createServer(app)
-  , io = socket.listen(server);
+    , server = http.createServer(app)
+    , io = socket.listen(server);
 
-app.configure(function() {
+var useMockServices = false;
+if (process.env.USE_MOCK_SERVICES) {
+    useMockServices = true;
+    console.info("Start server with gui test service mocks.");
+}
+
+app.configure(function () {
+    if (useMockServices) {
+        // use service mocks only in case of gui/controller testing
+        // client src includes are only delivered in case of mock testing.
+        // server desides when active!
+        app.use(function (req, res, next) {
+            req.useMockServices = useMockServices;
+            next();
+        });
+    }
     app.use(express.bodyParser());
     app.use(express['static'](__dirname + '/public'));
-    
+
     app.set('view engine', 'jade');
     app.set('views', __dirname + '/app/views');
 });
 
-io.configure(function() {
+io.configure(function () {
     io.set('log level', 1);
 });
 
@@ -44,11 +59,11 @@ var options = {
 };
 
 console.log('1. -> viewmodel'.cyan);
-repository.init(options.repository, function(err) {
+repository.init(options.repository, function (err) {
 
     console.log('2. -> eventdenormalizer'.cyan);
-    contextEventDenormalizer.initialize(options, function(err) {
-        if(err) {
+    contextEventDenormalizer.initialize(options, function (err) {
+        if (err) {
             console.log(err);
         }
 
@@ -61,7 +76,7 @@ repository.init(options.repository, function(err) {
         // on receiving an __event__ from redis via the hub module:
         //
         // - let it be handled from the eventDenormalizer to update the viewmodel storage
-        msgbus.onEvent(function(data) {
+        msgbus.onEvent(function (data) {
             console.log(colors.cyan('eventDenormalizer -- denormalize event ' + data.event));
             contextEventDenormalizer.denormalize(data);
         });
@@ -69,7 +84,7 @@ repository.init(options.repository, function(err) {
         // on receiving an __event__ from contextEventDenormalizer module:
         //
         // - forward it to connected browsers via socket.io
-        contextEventDenormalizer.on('event', function(evt) {
+        contextEventDenormalizer.on('event', function (evt) {
             console.log(colors.magenta('\nsocket.io -- publish event ' + evt.event + ' to browser'));
             io.sockets.emit('events', evt);
         });
@@ -78,11 +93,11 @@ repository.init(options.repository, function(err) {
 
         // on receiving __commands__ from browser via socket.io emit them on the ĥub module (which will 
         // forward it to message bus (redis pubsub))
-        io.sockets.on('connection', function(socket) {
+        io.sockets.on('connection', function (socket) {
             var conn = socket.handshake.address.address + ":" + socket.handshake.address.port;
             console.log(colors.magenta(conn + ' -- connects to socket.io'));
-            
-            socket.on('commands', function(data) {
+
+            socket.on('commands', function (data) {
                 console.log(colors.magenta('\n' + conn + ' -- sends command ' + data.command + ':'));
                 console.log(data);
 

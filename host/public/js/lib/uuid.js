@@ -59,7 +59,7 @@
         _hexToByte[_byteToHex[i]] = i;
     }
 
-    // **`parse()` - Parse a UUID into it's component bytes**
+    // **`parse()` - Parse a UUID into it's view-component bytes**
     function parse(s, buf, offset) {
         var i = (buf && offset) || 0, ii = 0;
 

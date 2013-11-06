@@ -3,27 +3,6 @@
  */
 
 
-Item = function (id, name) {
-    this.id = id;
-    this.name = name;
-    this.clone = function () {
-        return new Item(this.id, this.name);
-    }
-    this.equals = function (rhs) {
-        return ( this.id == rhs.id &&
-            this.name == rhs.name);
-    }
-}
-function indexOfItem(item, items) {
-    if (items.length == 0)
-        return -1;
-    for (idx = 0; idx < items.length; idx++) {
-        if (items[idx].id == item.id)
-            return idx;
-    }
-    return -1;
-}
-
 
 var itemModule = angular.module('itemModule', ['smfCqrs'])
     // https://github.com/angular/angular.js/issues/1277
@@ -45,7 +24,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
 
         return container;
     }, { }))
-    .controller('ItemsCtrl', function ($scope, smfCqrs) {
+    .controller('ItemsCtrl', ['$scope', 'smfCqrs', function ($scope, smfCqrs) {
 
         function createId() {
             return uuid.v1();
@@ -63,7 +42,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
 
         $scope.addItem = function (input) {
             if ($scope.newItemName) {
-                var item = new Item(createId(), $scope.newItemName);
+                var item = new item-model.Item(createId(), $scope.newItemName);
                 smfCqrs.createItem(
                     item,
                     function success(item) {
@@ -77,8 +56,8 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             }
             document.getElementById(input).focus();
         }
-    })
-    .controller('ItemCtrl', function ($scope, smfCqrs) {
+    }])
+    .controller('ItemCtrl', ['$scope', 'smfCqrs' , function ($scope, smfCqrs) {
 
         function setEditMode() {
             $scope.editMode = ($scope.mouseOver || $scope.focused);
@@ -94,7 +73,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
         }
 
         function saveChanges() {
-            if ($scope.item.equals($scope.itemBackup)) {
+            if (!$scope.item.equals($scope.itemBackup)) {
                 smfCqrs.saveChanges(
                     $scope.item,
                     function success(item) {
@@ -159,7 +138,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             smfCqrs.deleteItem(
                 $scope.item.id,
                 function success() {
-                    var idx = indexOfItem($scope.item, $scope.items);
+                    var idx = item-model.indexOfItem($scope.item, $scope.items);
                     if (idx >= 0) {
                         $scope.items.splice(idx, 1);
                     }
@@ -174,8 +153,6 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
         $scope.$on('$destroy', function destroyController() {
             saveChanges();
         })
-    });
-
-
+    }]);
 
 

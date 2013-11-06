@@ -55,6 +55,13 @@ to use them do following to install selenium and run tests:
     node_modules/protractor/bin/install_selenium_standalone
     ./selenium/start
 
+
+for testing WebDriverJS commands start
+
+    ./node_modules/protractor/bin/elementexplorer.js <urL>
+
+starts a REPL.
+
 for more details check [protractors git page](https://github.com/angular/protractor/blob/master/docs/getting-started.md)
 
 
