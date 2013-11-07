@@ -29,20 +29,20 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
         function createId() {
             return uuid.v1();
         }
-
+        console.log("configure controller. smfCqrs: " + smfCqrs);
         $scope.newItemName = "";
 
         $scope.items = [];
-        smfCqrs.loadItems(function success(items) {
-                $scope.items = items;
-            },
-            function error(err) {
-                // TODO show error
-            });
+        smfCqrs.loadItems(function (error, items) {
+            if (error) {
+                throw Error("blabla"); // TODO
+            }
+            $scope.items = items;
+        });
 
         $scope.addItem = function (input) {
             if ($scope.newItemName) {
-                var item = new item-model.Item(createId(), $scope.newItemName);
+                var item = new item_model.Item(createId(), $scope.newItemName);
                 smfCqrs.createItem(
                     item,
                     function success(item) {
@@ -87,6 +87,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             }
         }
 
+        console.log("configure controller. smfCqrs: " + smfCqrs);
         $scope.item;
 
         $scope.mouseOver = false;
@@ -138,7 +139,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             smfCqrs.deleteItem(
                 $scope.item.id,
                 function success() {
-                    var idx = item-model.indexOfItem($scope.item, $scope.items);
+                    var idx = item_model.indexOfItem($scope.item, $scope.items);
                     if (idx >= 0) {
                         $scope.items.splice(idx, 1);
                     }

@@ -1,69 +1,59 @@
-angular.module('smfCqrs', [])
-    .service('smfCqrs', ['$http', function () {
+angular.module('smfCqrsMockConfig', [])
+    .factory('smfCqrsMockConfig', function () {
+        console.log("setup cqrs mock config.");
 
-        this.getObjectID = (function () {
-            var id = 0;    // Private ID counter
-            return function (obj) {
-                if (obj.hasOwnProperty("__objectID__")) {
-                    return obj.__objectID__;
-                } else {
-                    ++id;
-                    Object.defineProperty(obj, "__objectID__", {
-                        /*
-                         * Explicitly sets these two attribute values to false,
-                         * although they are false by default.
-                         */
-                        "configurable": false,
-                        "enumerable": false,
-                        /*
-                         * This closure guarantees that different objects
-                         * will not share the same id variable.
-                         */
-                        "get": (function (__objectID__) {
-                            return function () {
-                                return __objectID__;
-                            };
-                        })(id),
-                        "set": function () {
-                            throw new Error("Sorry, but 'obj.__objectID__' is read-only!");
-                        }
-                    });
-                    return obj.__objectID__;
+        return{
+            doLoadItems: function (callback) {
+                console.log("mock loading data");
+                if (!this.configuredLoadItems) {
+                    throw Error("The mock is not configured to loadItems().");
                 }
-            };
-        })();
-
-        this.loadItems = function (success, err) {
-            // TODO array init is done via $http.get('/allItems.json')
-            // $http({method: 'GET', url: '/allItems.json'}).success(function() {
-            // ...
-            // })
-
-            console.log("mock " + this.getObjectID(this) + "  loading data");
+                callback(this.loadItemsError, this.loadedItems);
+            },
+            whenLoadItems: function ( error, items) {
+                this.configuredLoadItems = true;
+                this.loadedItems = items;
+                this.loadItemsError = error;
+            }
         }
+    });
 
-        this.whenLoadItems = function (succeed, success, error) {
-            if (succeed) return success;
-            else return error;
+
+angular.module('smfCqrs', ['smfCqrsMockConfig'])
+    .factory('smfCqrs', ['smfCqrsMockConfig', function (smfCqrsMockConfig) {
+
+        console.log("mock version. smfCqrsMockConfig: ");
+
+        return {
+            loadItems: function (callback) {
+                smfCqrsMockConfig.doLoadItems(callback);
+            },
+
+            createItem: function (item, success, error) {
+                // TODO create item
+                console.log("mock create command.");
+                success(item);
+            },
+
+            saveChanges: function (item, success, error) {
+                // TODO save item
+                console.log("mock save changes command.");
+                success(item);
+            },
+
+            deleteItem: function (itemId, success, error) {
+                // TODO delete item
+                console.log("mock delete command.");
+                success();
+            }
         }
-
-
-        this.createItem = function (item, success, error) {
-            // TODO create item
-            console.log("mock " + getObjectID(this) + " create command.");
-            success(item);
-        }
-        this.saveChanges = function (item, success, error) {
-            // TODO save item
-            console.log("mock " + getObjectID(this) + " save changes command.");
-            success(item);
-        }
-        this.deleteItem = function (itemId, success, error) {
-            // TODO delete item
-            console.log("mock " + getObjectID(this) + " delete command.");
-            success();
-        }
-
-        // TODO implement socket communication
-
-    }]);
+    }])
+    .run(function (smfCqrsMockConfig) {
+        console.info("setup load-2-items-success mock: " + smfCqrsMockConfig);
+        smfCqrsMockConfig.whenLoadItems(
+            null,
+            [
+                new item_model.Item("77e7c7df-c9d8-43d9-8ef4-39abad1ea560", "Item 1"),
+                new item_model.Item("afa95629-9e09-4bac-a0d5-299e27488d14", "Item 2")
+            ]);
+    })

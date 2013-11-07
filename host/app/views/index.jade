@@ -1,5 +1,8 @@
 !!! 5
 html(lang="en")
+
+
+
     head
         meta( name="viewport", content="width=device-width, initial-scale=1.0")
         link( href="/bs/css/bh-bootstrap.min.css", rel="stylesheet", media="screen")
@@ -11,47 +14,44 @@ html(lang="en")
         |<![endif]-->
 
         title cqrs-sample - CQRS Sample with cqrs-domain, cqrs-eventdenormalizer, etc.
-    body( ng-app= "itemModule")
-        .container
-            h1#h1 cqrs-sample
-            p At this point of development you can create, change and delete items.
-            p They are saved in a read model for presentation and in an eventstore for domain persitance.
+body( ng-app= "itemModule")
+    .container
+        h1#h1 cqrs-sample
+        p At this point of development you can create, change and delete items.
+        p They are saved in a read model for presentation and in an eventstore for domain persitance.
 
-            #index-view(ng-controller="ItemsCtrl")
-                form.form-inline
-                    .form-group
-                        input#newItemName.form-control(type="text", autofocus, placeholder="Enter new item name", ng-model="newItemName")
-                    button#addItem.btn.btn-primary(type="submit", ng-click="addItem('newItemName')") Add
-                br
-                ul#items
-                    li( ng-repeat="item in items", ng-init="itemIdx = $index")
-                        .item-editor(ng-controller="ItemCtrl", ng-mouseover="mouseOver= true", ng-mouseleave="mouseOver= false")
-                            .item(ng-hide="editMode")
-                                span#nameSpan {{ item.name }}
-                            .edit(ng-show="editMode")
-                                input#nameInput(type="text", ng-model="item.name", smf-focus="focus()", smf-blur="blur()", smf-keyup="press($event)")
-                                button.btn.btn-xs.btn-danger(type="submit", ng-click="delete()")
-                                    span.glyphicon.glyphicon-remove
+        #index-view(ng-controller="ItemsCtrl")
+            form.form-inline
+                .form-group
+                    input#newItemName.form-control(type="text", autofocus, placeholder="Enter new item name", ng-model="newItemName")
+                button#addItem.btn.btn-primary(type="submit", ng-click="addItem('newItemName')") Add
+            br
+            ul#items
+                li( ng-repeat="item in items", ng-init="itemIdx = $index")
+                    .item-editor(ng-controller="ItemCtrl", ng-mouseover="mouseOver= true", ng-mouseleave="mouseOver= false")
+                        .item(ng-hide="editMode")
+                            span#nameSpan {{ item.name }}
+                        .edit(ng-show="editMode")
+                            input#nameInput(type="text", ng-model="item.name", smf-focus="focus()", smf-blur="blur()", smf-keyup="press($event)")
+                            button.btn.btn-xs.btn-danger(type="submit", ng-click="delete()")
+                                span.glyphicon.glyphicon-remove
 
-            p You can have multiple browser windows open - all get updated via socket.io.
-        
-        script(src='/js/lib/jquery-1.10.2.min.js', type='text/javascript')
-        script(src='/js/lib/underscore.js', type='text/javascript')
-        //- script(src='http://localhost:3000/socket.io/socket.io.js', type='text/javascript')
-        script( src="/bs/js/bootstrap.min.js")
-        script( src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js", type="text/javascript")
-        script( src="/js/lib/uuid.js", type="text/javascript")
-        script( src="/js/lib/cqrs-service.js", type="text/javascript")
-        script(src='/js/item/item-model.js', type='text/javascript')
-        - if ( useMockServices) {
-        | <!-- mock services. load after real ones. -->
-        script( src="/js/comp/angular-mocks/angular-mocks.js", type="text/javascript")
-        script( src="/js/lib/cqrs-mock-service.js", type="text/javascript")
-        -if( testSetup) {
-        script( src="/js/item/test-setups/" + testSetup, type="text/javascript")
-        - }
-        - }
-        script(src='/js/item/item-module.js', type='text/javascript')
+        p You can have multiple browser windows open - all get updated via socket.io.
 
-
-
+    script(src='/js/lib/jquery-1.10.2.min.js', type='text/javascript')
+    script(src='/js/lib/underscore.js', type='text/javascript')
+    //- script(src='http://localhost:3000/socket.io/socket.io.js', type='text/javascript')
+    script( src="/bs/js/bootstrap.min.js")
+    script( src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js", type="text/javascript")
+    script( src="/js/lib/uuid.js", type="text/javascript")
+    script(src='/js/item/item-model.js', type='text/javascript')
+    script( src="/js/lib/cqrs-service.js", type="text/javascript")
+    - if ( useMockServices) {
+    | <!-- mock services. load after real ones. -->
+    //- script( src="/js/comp/angular-mocks/angular-mocks.js", type="text/javascript")
+    script( src="/js/lib/cqrs-mock-service.js", type="text/javascript")
+    -if( useMockServices && testSetup) {
+    script( src="/js/item/test-setups/" + testSetup, type="text/javascript")
+    - }
+    - }
+    script(src='/js/item/item-module.js', type='text/javascript')

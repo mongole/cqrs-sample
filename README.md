@@ -55,6 +55,10 @@ to use them do following to install selenium and run tests:
     node_modules/protractor/bin/install_selenium_standalone
     ./selenium/start
 
+and then start your tests:
+
+    protractor ./tests/gui/testconfig.js
+
 
 for testing WebDriverJS commands start
 
