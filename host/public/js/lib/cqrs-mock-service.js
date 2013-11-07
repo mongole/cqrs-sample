@@ -3,17 +3,92 @@ angular.module('smfCqrsMockConfig', [])
         console.log("setup cqrs mock config.");
 
         return{
-            doLoadItems: function (callback) {
-                console.log("mock loading data");
-                if (!this.configuredLoadItems) {
-                    throw Error("The mock is not configured to loadItems().");
-                }
-                callback(this.loadItemsError, this.loadedItems);
-            },
-            whenLoadItems: function ( error, items) {
+            /**
+             * @name whenLoadItems
+             *
+             * @description
+             * configure the list of items to be returned by doLoadItems
+             *
+             * @param {function()}  `null` if doLoadItems simulates successful creation,
+             *                      `Error("errormessage") for simulation of an error.
+             * @param {[Item]} the items loaded.
+             */
+            whenLoadItems: function (error, items) {
                 this.configuredLoadItems = true;
                 this.loadedItems = items;
                 this.loadItemsError = error;
+            },
+            doLoadItems: function (callback/* ( error, items)*/) {
+                console.log("mock loading data");
+                if (!this.configuredLoadItems)
+                    throw Error("The mock is not configured to loadItems().");
+                callback(this.loadItemsError, this.loadedItems);
+            },
+
+            /**
+             * @name whenCreateItem
+             *
+             * @description
+             * configure the doCreateItem method
+             *
+             * @param {function()}  `null` if doCreateItem simulates successful creation,
+             *                      `Error("errormessage") for simulation of an error.
+             * @param {Item} the item to be created.
+             */
+            whenCreateItem: function ( error, item) {
+                this.configuredCreateItems = true;
+                this.createItemError = error;
+                this.toBeCreatedItem = item;
+            },
+            doCreateItem: function (callback/* ( error, createdItem)*/) {
+                console.log("mock create item");
+                if (!this.configuredCreateItems)
+                    throw Error("The mock is not configured to createItem().");
+                callback(this.createItemError, this.toBeCreatedItem);
+            },
+
+            /**
+             * @name whenSaveChanges
+             *
+             * @description
+             * configure the doCreateItem method
+             *
+             * @param {Item} the item to be created.
+             * @param {function()}  `null` if doCreateItem simulates successful save,
+             *                      `Error("errormessage") for simulation of an error.
+             */
+            whenSaveChanges: function (item, error, updatedItem) {
+                this.configuredSaveChanges = true;
+                this.toBeSavedUpdatedItem = updatedItem;
+                this.savedItemError = error;
+            },
+            doSaveChanges: function (item, callback/* ( error, item)*/) {
+                console.log("mock save changes.");
+                if (!this.configuredSaveChanges)
+                    throw Error("The mock is not configured to saveItem().");
+                callback(this.savedItemError, this.toBeSavedUpdatedItem);
+            },
+
+            /**
+             * @name whenCreateItem
+             *
+             * @description
+             * configure the doCreateItem method
+             *
+             * @param {string} the item id to be deleted.
+             * @param {function()}  `null` if doCreateItem simulates successful deletion,
+             *                      `Error("errormessage") for simulation of an error.
+             */
+            whenDeleteItem: function (itemId, error) {
+                this.configuredDeleteItem = true;
+                this.toBeDeletedItemId = itemId;
+                this.deleteItemError = error;
+            },
+            doDeleteItem: function (itemId, callback/* ( error)*/) {
+                console.log("mock delete");
+                if (!this.configuredDeleteItem)
+                    throw Error("The mock is not configured to deleteItem().");
+                callback(this.deleteItemError, this.toBeDeletedItemId);
             }
         }
     });
@@ -25,35 +100,21 @@ angular.module('smfCqrs', ['smfCqrsMockConfig'])
         console.log("mock version. smfCqrsMockConfig: ");
 
         return {
-            loadItems: function (callback) {
+            loadItems: function (callback/* ( error, items)*/) {
                 smfCqrsMockConfig.doLoadItems(callback);
             },
 
-            createItem: function (item, success, error) {
-                // TODO create item
-                console.log("mock create command.");
-                success(item);
+            createItem: function (item, callback /* ( error, item)*/) {
+                smfCqrsMockConfig.doCreateItem(item, callback);
             },
 
-            saveChanges: function (item, success, error) {
-                // TODO save item
-                console.log("mock save changes command.");
-                success(item);
+            saveChanges: function (item, callback /* ( error, item)*/) {
+                smfCqrsMockConfig.doSaveChanges(item, callback);
             },
 
-            deleteItem: function (itemId, success, error) {
-                // TODO delete item
-                console.log("mock delete command.");
-                success();
+            deleteItem: function (itemId, callback /* ( error, itemId)*/) {
+                smfCqrsMockConfig.doDeleteItem(item, callback);
             }
         }
     }])
-    .run(function (smfCqrsMockConfig) {
-        console.info("setup load-2-items-success mock: " + smfCqrsMockConfig);
-        smfCqrsMockConfig.whenLoadItems(
-            null,
-            [
-                new item_model.Item("77e7c7df-c9d8-43d9-8ef4-39abad1ea560", "Item 1"),
-                new item_model.Item("afa95629-9e09-4bac-a0d5-299e27488d14", "Item 2")
-            ]);
-    })
+

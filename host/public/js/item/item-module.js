@@ -29,6 +29,7 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
         function createId() {
             return uuid.v1();
         }
+
         console.log("configure controller. smfCqrs: " + smfCqrs);
         $scope.newItemName = "";
 
@@ -42,16 +43,16 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
 
         $scope.addItem = function (input) {
             if ($scope.newItemName) {
-                var item = new item_model.Item(createId(), $scope.newItemName);
                 smfCqrs.createItem(
-                    item,
-                    function success(item) {
+                    new item_model.Item(createId(), $scope.newItemName),
+                    function callback(error, item) {
+                        if (error) {
+                            console.error(error);  // TODO build error object and use in all gui
+                            // throw Error("Handle error after create item problem."); // TODO build error visualisation on top
+                        }
                         $scope.items.push(item);
                         delete( $scope.newItemName);
                         // TODO show success
-                    },
-                    function error(err) {
-                        // TODO show error
                     });
             }
             document.getElementById(input).focus();
@@ -76,13 +77,13 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             if (!$scope.item.equals($scope.itemBackup)) {
                 smfCqrs.saveChanges(
                     $scope.item,
-                    function success(item) {
+                    function callback(err, item) {
+                        if (err) {
+                            console.error(err); // TODO
+                            // throw Error(....) // TODO
+                        }
                         $scope.item = item;
                         // TODO show success
-                    },
-                    function error(err) {
-                        // TODO show error
-                        // TODO set value to value from server?
                     });
             }
         }
@@ -138,17 +139,17 @@ var itemModule = angular.module('itemModule', ['smfCqrs'])
             $scope.preventSave = true;
             smfCqrs.deleteItem(
                 $scope.item.id,
-                function success() {
+                function callback(err, itemId) {
+                    if(err) {
+                        console.error(err); // TODO
+                        // throw Error(....) // TODO
+                    }
                     var idx = item_model.indexOfItem($scope.item, $scope.items);
                     if (idx >= 0) {
                         $scope.items.splice(idx, 1);
                     }
                     // TODO show success
-                },
-                function error(err) {
-                    // TODO show error
-                }
-            )
+                });
         }
 
         $scope.$on('$destroy', function destroyController() {
